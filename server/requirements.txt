@@ -1,0 +1,13 @@
+Flask
+gunicorn
+flask-cors
+Flask-SQLAlchemy
+PyMySQL
+PyJWT
+langchain
+langchain-community
+langchain-chroma
+langchain-text-splitters
+chromadb
+pypdf
+python-docx

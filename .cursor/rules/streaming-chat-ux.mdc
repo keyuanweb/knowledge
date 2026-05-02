@@ -1,0 +1,14 @@
+---
+description: 智能问答流式对话前端约定（等待态、光标、滚动、拉流）
+globs: client/src/views/ChatPage.vue
+alwaysApply: false
+---
+
+# 流式对话（ChatPage + chatAskStream）
+
+- **拉流**：助手回答用 `fetch` + ReadableStream 消费 NDJSON，不要用 Axios 拉流；实现见 `client/src/utils/chatAskStream.js`。后端契约：`POST /chat/ask`（或项目里实际路径）逐行 JSON：`meta` → 多条 `token` → `done` / `error`。
+- **等待态**：在助手 `streaming && !content` 时显示「正在生成回答」+ 三点动画（`wait-block` / `wait-dots`），可用 `aria-live="polite"`。
+- **光标**：有正文后，在 `msg-text` 内联紧跟 `.caret`（仅 `streaming` 时），表示仍在输出。
+- **自动滚动**：消息列表容器用 `ref`（如 `msgsEl`），`scrollMsgsToBottom()` 用 `requestAnimationFrame` 合并同一帧多次更新；在用户发送后、插入助手占位、`onMeta`、`onToken` 以及流结束 `finally` 里调用，保证滚到最新。
+- **来源**：可在流结束后展示参考来源；若改展示时机，注意别打断滚动与 `streaming` 状态清理。
+- **模板**：助手气泡内 `msg-text` 与 `caret` 的 `<span>` 保持同一逻辑行，避免拆标签导致渲染异常。

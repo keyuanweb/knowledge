@@ -1,0 +1,37 @@
+# Python
+server/.venv/
+**/__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+
+# Node
+client/node_modules/
+client/dist/
+client/dist-ssr/
+
+# 环境变量与密钥（勿提交）
+.env
+.env.*.local
+*.pem
+
+# 运行时数据（向量库与上传文件；保留空目录占位）
+server/storage/chroma/*
+!server/storage/chroma/.gitkeep
+server/storage/uploads/*
+!server/storage/uploads/.gitkeep
+
+# IDE
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# 日志与系统文件
+*.log
+.DS_Store
+Thumbs.db

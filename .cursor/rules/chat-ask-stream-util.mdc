@@ -1,0 +1,10 @@
+---
+description: NDJSON 流式问答请求（fetch 读取器）
+globs: client/src/utils/chatAskStream.js
+alwaysApply: false
+---
+
+# chatAskStream.js
+
+- 使用 `fetch` + `ReadableStreamDefaultReader` 按行解析 NDJSON，不用 Axios 流式。
+- 与 `ChatPage.vue` 中传入的 `onMeta`、`onToken`、`onDone`、`onError` 保持一致；改协议时同步改后端 `routes/chat.py`（或当前项目中的流式 ask 路由）。
