@@ -15,6 +15,7 @@ from sqlalchemy import func
 from extensions import db
 from models.chat_log import ChatLog
 from models.document import DocChunk, Document
+from models.document_status import DocumentStatus, status_label_zh
 from models.knowledge_base import KnowledgeBase
 from models.user import User
 from services.audit_service import write_audit
@@ -175,8 +176,15 @@ class AdminService:
                     "title": d.title,
                     "filename": d.filename,
                     "file_type": d.file_type,
-                    "can_reindex": bool(getattr(d, "storage_path", None)) and d.status in ("failed", "indexed"),
+                    "can_reindex": bool(getattr(d, "storage_path", None))
+                    and d.status
+                    in (
+                        DocumentStatus.FAILED.value,
+                        DocumentStatus.INDEXED.value,
+                        DocumentStatus.UPLOADED.value,
+                    ),
                     "status": d.status,
+                    "status_label": status_label_zh(d.status),
                     "ingest_error": (d.ingest_error or "")[:500] if getattr(d, "ingest_error", None) else None,
                     "created_by": d.created_by,
                     "created_at": d.created_at.isoformat() if d.created_at else None,
@@ -268,7 +276,7 @@ class AdminService:
             filename=filename,
             file_type=file_type,
             storage_path=safe_name,
-            status="pending",
+            status=DocumentStatus.PENDING.value,
             ingest_error=None,
             created_by=created_by,
             knowledge_base_id=knowledge_base_id,
@@ -282,7 +290,8 @@ class AdminService:
             "document": {
                 "id": doc.id,
                 "title": doc_title,
-                "status": "pending",
+                "status": DocumentStatus.PENDING.value,
+                "status_label": status_label_zh(DocumentStatus.PENDING.value),
                 "message": "已接收文件，正在后台入库，请稍后刷新列表查看状态",
             }
         }
@@ -298,15 +307,19 @@ class AdminService:
             raise ValueError("文档不存在")
         if not doc.storage_path:
             raise ValueError("该文档无本地存储记录，无法重建索引，请重新上传")
-        if doc.status == "processing":
+        if doc.status == DocumentStatus.PROCESSING.value:
             raise ValueError("文档正在入库中，请稍后再试")
 
-        doc.status = "pending"
+        doc.status = DocumentStatus.PENDING.value
         doc.ingest_error = None
         db.session.commit()
         write_audit(actor_user_id=actor_id, action="doc.reindex", detail={"doc_id": doc_id})
         submit_document_ingest(current_app._get_current_object(), doc.id)
-        return {"id": doc_id, "status": "pending"}
+        return {
+            "id": doc_id,
+            "status": DocumentStatus.PENDING.value,
+            "status_label": status_label_zh(DocumentStatus.PENDING.value),
+        }
 
     @staticmethod
     def delete_document(doc_id: int, actor_id: int) -> dict:

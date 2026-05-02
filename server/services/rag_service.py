@@ -18,6 +18,7 @@ from langchain_core.messages import HumanMessage
 from extensions import db
 from models.chat_log import ChatLog
 from models.document import DocChunk, Document
+from models.document_status import DocumentStatus
 from models.knowledge_base import KnowledgeBase
 from services.file_loader import FileLoader
 from services.utils import md5_text
@@ -136,7 +137,7 @@ class RagService:
         # 更新文档状态
         doc: Document | None = db.session.get(Document, doc_id)
         if doc:
-            doc.status = "indexed"
+            doc.status = DocumentStatus.INDEXED.value
             db.session.commit()
 
         return {"doc_id": doc_id, "chunks": len(chunks), "file_type": file_type}

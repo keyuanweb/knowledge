@@ -30,7 +30,7 @@ Base URL：`/api`（与前端 `VITE_API_BASE_URL` 一致，默认 `http://localh
 |------|------|------|
 | GET | `/admin/stats` | 统计 |
 | GET | `/admin/audit-logs` | 审计列表，`?limit=` |
-| GET | `/admin/docs` | 文档列表 |
+| GET | `/admin/docs` | 文档列表；每条含 `status`（枚举值）、`status_label`（中文） |
 | POST | `/admin/docs/upload` | multipart：`file`, `knowledge_base_id`, `title` 可选 |
 | POST | `/admin/docs/<id>/reindex` | 重建向量 |
 | DELETE | `/admin/docs/<id>` | 删除文档 |

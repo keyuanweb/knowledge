@@ -42,7 +42,7 @@ CREATE TABLE IF NOT EXISTS `documents` (
   `filename` VARCHAR(255) NOT NULL COMMENT '原始文件名',
   `file_type` VARCHAR(32) NOT NULL COMMENT '文件类型：pdf/docx/md/txt',
   `storage_path` VARCHAR(512) NOT NULL DEFAULT '' COMMENT '相对 uploads 的存储文件名',
-  `status` VARCHAR(16) NOT NULL DEFAULT 'pending' COMMENT '状态：pending/processing/indexed/failed',
+  `status` VARCHAR(16) NOT NULL DEFAULT 'pending' COMMENT '状态枚举值 pending/processing/indexed/failed/uploaded，中文见 API status_label',
   `ingest_error` TEXT NULL COMMENT '入库失败原因',
   `created_by` INT NOT NULL COMMENT '创建者用户ID',
   `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',

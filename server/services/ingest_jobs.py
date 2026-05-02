@@ -10,6 +10,7 @@ from flask import current_app
 
 from extensions import db
 from models.document import Document
+from models.document_status import DocumentStatus
 from models.knowledge_base import KnowledgeBase
 from services.rag_service import RagService
 
@@ -21,7 +22,7 @@ def run_ingest_for_document(doc_id: int) -> None:
 
     kb: KnowledgeBase | None = db.session.get(KnowledgeBase, doc.knowledge_base_id)
     if not kb:
-        doc.status = "failed"
+        doc.status = DocumentStatus.FAILED.value
         doc.ingest_error = "知识库不存在"
         db.session.commit()
         return
@@ -29,12 +30,12 @@ def run_ingest_for_document(doc_id: int) -> None:
     upload_dir = current_app.config["UPLOAD_DIR"]
     file_path = os.path.join(upload_dir, doc.storage_path)
     if not os.path.isfile(file_path):
-        doc.status = "failed"
+        doc.status = DocumentStatus.FAILED.value
         doc.ingest_error = "文件不存在，可能已被移动或删除"
         db.session.commit()
         return
 
-    doc.status = "processing"
+    doc.status = DocumentStatus.PROCESSING.value
     doc.ingest_error = None
     db.session.commit()
 
@@ -54,6 +55,6 @@ def run_ingest_for_document(doc_id: int) -> None:
             pass
         doc = db.session.get(Document, doc_id)
         if doc:
-            doc.status = "failed"
+            doc.status = DocumentStatus.FAILED.value
             doc.ingest_error = (str(e) or "入库失败")[:2000]
             db.session.commit()

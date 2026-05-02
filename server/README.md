@@ -75,7 +75,7 @@ gunicorn -c deploy/gunicorn.conf.py wsgi:app
 
 - 登录：`POST /api/auth/login`
 - 当前用户：`GET /api/auth/me`
-- 管理员上传：`POST /api/admin/docs/upload`（form-data：`file`、`knowledge_base_id`；**异步入库**，返回 `pending`）
+- 管理员上传：`POST /api/admin/docs/upload`（form-data：`file`、`knowledge_base_id`；**异步入库**，返回 `status` 枚举值及 `status_label` 中文）
 - 重建索引：`POST /api/admin/docs/<id>/reindex`
 - 问答：`POST /api/chat/ask`（JSON：`question`、`knowledge_base_id`，NDJSON 流）
 
@@ -97,7 +97,7 @@ gunicorn -c deploy/gunicorn.conf.py wsgi:app
 1. 执行 `01_schema.sql`、`02_seed.sql`（及按需 `03`/`04`）。  
 2. 拉取 Ollama 模型：`ollama pull qwen3:8b`、`ollama pull qwen3-embedding:4b`。  
 3. 启动后端与前端，管理员登录后在「文档管理」上传 txt/md/pdf/docx。  
-4. 刷新列表直至文档状态为 `indexed`。  
+4. 刷新列表直至状态为「已入库」（`status=indexed`，见 `DocumentStatus`）。  
 5. 在「智能问答」选择知识库提问，确认流式回答与 sources。
 
 ## 9. 冒烟测试

@@ -198,7 +198,7 @@ onMounted(async () => {
               class="badge"
               :class="d.status"
               :title="d.ingest_error ? `失败原因：${d.ingest_error}` : ''"
-            >{{ d.status }}</span>
+            >{{ d.status_label || d.status }}</span>
           </div>
           <div class="time">{{ d.created_at || '-' }}</div>
           <div class="col-act act-btns">

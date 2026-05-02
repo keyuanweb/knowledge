@@ -6,17 +6,14 @@ from __future__ import annotations
 
 from extensions import db
 from models.base import TimestampMixin
+from models.document_status import DocumentStatus
 
 
 class Document(db.Model, TimestampMixin):
     """
     文档表。
 
-    status:
-    - pending: 已上传，等待/排队入库
-    - processing: 正在向量化
-    - indexed: 已入库（已写入向量库）
-    - failed: 入库失败（见 ingest_error）
+    status 存枚举值（DocumentStatus.value），中文展示见 status_label_zh。
     """
 
     __tablename__ = "documents"
@@ -33,7 +30,12 @@ class Document(db.Model, TimestampMixin):
     filename = db.Column(db.String(255), nullable=False, comment="原始文件名")
     file_type = db.Column(db.String(32), nullable=False, comment="文件类型，如 pdf/docx/md/txt")
     storage_path = db.Column(db.String(512), nullable=False, default="", comment="相对 uploads 的存储文件名")
-    status = db.Column(db.String(16), nullable=False, default="pending", comment="状态")
+    status = db.Column(
+        db.String(16),
+        nullable=False,
+        default=DocumentStatus.PENDING.value,
+        comment="状态：pending/processing/indexed/failed（见 DocumentStatus）",
+    )
     ingest_error = db.Column(db.Text, nullable=True, comment="入库失败原因")
     created_by = db.Column(db.Integer, nullable=False, comment="创建者用户ID")
 
