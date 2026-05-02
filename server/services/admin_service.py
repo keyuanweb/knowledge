@@ -89,6 +89,41 @@ class AdminService:
         ]
 
     @staticmethod
+    def create_user(username: str, password: str, role: str, actor_id: int) -> dict:
+        """
+        新建用户：用户名唯一，密码必填，角色 admin/user。
+        """
+
+        un = (username or "").strip()
+        if not un:
+            raise ValueError("用户名不能为空")
+        if len(un) > 64:
+            raise ValueError("用户名过长")
+        if User.query.filter_by(username=un).first():
+            raise ValueError("用户名已存在")
+
+        pwd = (password or "").strip()
+        if not pwd:
+            raise ValueError("密码不能为空")
+        if len(pwd) < 4:
+            raise ValueError("密码至少 4 位")
+
+        role = (role or "user").strip()
+        if role not in ("admin", "user"):
+            raise ValueError("角色必须为 admin 或 user")
+
+        user = User(username=un, password_md5=md5_password(pwd), role=role)
+        db.session.add(user)
+        db.session.commit()
+        write_audit(actor_user_id=actor_id, action="user.create", detail={"id": user.id, "username": user.username})
+        return {
+            "id": user.id,
+            "username": user.username,
+            "role": user.role,
+            "created_at": user.created_at.isoformat() if user.created_at else None,
+        }
+
+    @staticmethod
     def update_user(user_id: int, actor_id: int, payload: dict) -> dict:
         """
         更新用户：用户名、角色、密码（密码留空则不修改）。
@@ -160,9 +195,10 @@ class AdminService:
         返回文档列表。
         """
 
+        # 使用 outerjoin：避免「文档存在但知识库记录缺失」时整行被 inner join 过滤掉导致列表空白
         docs = (
             db.session.query(Document, KnowledgeBase.name.label("knowledge_base_name"))
-            .join(KnowledgeBase, Document.knowledge_base_id == KnowledgeBase.id)
+            .outerjoin(KnowledgeBase, Document.knowledge_base_id == KnowledgeBase.id)
             .order_by(Document.id.desc())
             .all()
         )
@@ -172,7 +208,7 @@ class AdminService:
                 {
                     "id": d.id,
                     "knowledge_base_id": d.knowledge_base_id,
-                    "knowledge_base_name": kb_name,
+                    "knowledge_base_name": kb_name or "—",
                     "title": d.title,
                     "filename": d.filename,
                     "file_type": d.file_type,

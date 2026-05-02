@@ -23,6 +23,11 @@ const deleteTarget = ref(null)
 const deleteErr = ref('')
 const deleteLoading = ref(false)
 
+const showCreate = ref(false)
+const createForm = reactive({ username: '', password: '', role: 'user' })
+const createErr = ref('')
+const createLoading = ref(false)
+
 async function load() {
   errorMsg.value = ''
   try {
@@ -61,6 +66,7 @@ async function submitEdit() {
     const body = { username: un, role: editForm.role }
     if (editForm.password.trim()) body.password = editForm.password
     await api.patch(`/admin/users/${editTarget.value.id}`, body)
+    editLoading.value = false
     closeEdit()
     await load()
   } catch (e) {
@@ -88,6 +94,7 @@ async function confirmDelete() {
   deleteLoading.value = true
   try {
     await api.delete(`/admin/users/${deleteTarget.value.id}`)
+    deleteLoading.value = false
     closeDelete()
     await load()
   } catch (e) {
@@ -106,6 +113,47 @@ function canDelete(u) {
   return true
 }
 
+function openCreate() {
+  createForm.username = ''
+  createForm.password = ''
+  createForm.role = 'user'
+  createErr.value = ''
+  showCreate.value = true
+}
+
+function closeCreate() {
+  if (createLoading.value) return
+  showCreate.value = false
+}
+
+async function submitCreate() {
+  createErr.value = ''
+  const un = createForm.username.trim()
+  if (!un) {
+    createErr.value = '用户名不能为空'
+    return
+  }
+  if (!createForm.password?.trim()) {
+    createErr.value = '密码不能为空'
+    return
+  }
+  createLoading.value = true
+  try {
+    await api.post('/admin/users', {
+      username: un,
+      password: createForm.password,
+      role: createForm.role,
+    })
+    createLoading.value = false
+    closeCreate()
+    await load()
+  } catch (e) {
+    createErr.value = e?.message || '创建失败'
+  } finally {
+    createLoading.value = false
+  }
+}
+
 onMounted(load)
 </script>
 
@@ -113,7 +161,10 @@ onMounted(load)
   <div class="page">
     <div class="head">
       <p class="page-lead">系统登录账号与角色；不能删除自己或唯一管理员</p>
-      <button class="btn" type="button" @click="load">刷新</button>
+      <div class="actions">
+        <button class="btn" type="button" @click="load">刷新</button>
+        <button type="button" class="primary" @click="openCreate">新增用户</button>
+      </div>
     </div>
     <div v-if="errorMsg" class="err">{{ errorMsg }}</div>
     <div class="panel">
@@ -186,6 +237,41 @@ onMounted(load)
     </Teleport>
 
     <Teleport to="body">
+      <div v-if="showCreate" class="modal-mask" @click.self="closeCreate">
+        <div class="modal" role="dialog" aria-modal="true">
+          <div class="modal-h">
+            <h2 class="modal-title">新增用户</h2>
+            <button type="button" class="icon-close" aria-label="关闭" :disabled="createLoading" @click="closeCreate">×</button>
+          </div>
+          <div class="modal-b">
+            <label class="fld">
+              <span>用户名 <em class="req">*</em></span>
+              <input v-model.trim="createForm.username" maxlength="64" autocomplete="off" />
+            </label>
+            <label class="fld">
+              <span>密码 <em class="req">*</em></span>
+              <input v-model="createForm.password" type="password" autocomplete="new-password" />
+            </label>
+            <label class="fld">
+              <span>角色</span>
+              <select v-model="createForm.role" class="sel">
+                <option value="user">user</option>
+                <option value="admin">admin</option>
+              </select>
+            </label>
+            <p v-if="createErr" class="cerr">{{ createErr }}</p>
+          </div>
+          <div class="modal-f">
+            <button type="button" class="btn" :disabled="createLoading" @click="closeCreate">取消</button>
+            <button type="button" class="primary" :disabled="createLoading" @click="submitCreate">
+              {{ createLoading ? '提交中…' : '创建' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
+
+    <Teleport to="body">
       <div v-if="showDelete" class="modal-mask" @click.self="closeDelete">
         <div class="modal modal-sm" role="dialog" aria-modal="true">
           <div class="modal-h">
@@ -230,6 +316,13 @@ onMounted(load)
   line-height: 1.5;
   color: var(--text);
   max-width: 52rem;
+}
+.actions {
+  display: flex;
+  gap: 10px;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  align-items: center;
 }
 .head .btn {
   flex-shrink: 0;
@@ -392,6 +485,10 @@ onMounted(load)
   gap: 6px;
   font-size: 13px;
   color: var(--text);
+}
+.fld .req {
+  color: #ef4444;
+  font-style: normal;
 }
 .fld input,
 .fld .sel {

@@ -35,6 +35,9 @@ Base URL：`/api`（与前端 `VITE_API_BASE_URL` 一致，默认 `http://localh
 | POST | `/admin/docs/<id>/reindex` | 重建向量 |
 | DELETE | `/admin/docs/<id>` | 删除文档 |
 | GET/POST/DELETE | `/admin/knowledge-bases` … | 知识库 CRUD |
-| GET/PATCH/DELETE | `/admin/users` … | 用户管理 |
+| GET | `/admin/users` | 用户列表 |
+| POST | `/admin/users` | 新建用户；JSON：`username`、`password`、`role`（可选，默认 user） |
+| PATCH | `/admin/users/<id>` | 更新用户 |
+| DELETE | `/admin/users/<id>` | 删除用户 |
 
 完整错误语义以 JSON 字段 `ok`, `message` 为准。

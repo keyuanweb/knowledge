@@ -46,7 +46,8 @@ async function loadDocs() {
   loading.value = true
   try {
     const res = await api.get('/admin/docs')
-    docs.value = res?.data || []
+    const rows = res?.data
+    docs.value = Array.isArray(rows) ? rows : []
   } catch (e) {
     listErr.value = e?.message || '加载失败'
   } finally {
@@ -117,6 +118,7 @@ async function submitUpload() {
     infoMsg.value = res?.data?.document?.message || '已提交后台入库'
     title.value = ''
     clearFile()
+    uploadLoading.value = false
     closeUpload()
     await loadDocs()
   } catch (e) {
@@ -144,6 +146,7 @@ async function confirmDeleteDoc() {
   docDeleteLoading.value = true
   try {
     await api.delete(`/admin/docs/${docDeleteTarget.value.id}`)
+    docDeleteLoading.value = false
     closeDocConfirm()
     await loadDocs()
     await loadKnowledgeBases()
@@ -188,6 +191,7 @@ onMounted(async () => {
           <div>创建时间</div>
           <div class="col-act">操作</div>
         </div>
+        <div v-if="!loading && !listErr && !docs.length" class="empty-hint">暂无文档，请点击「上传文档」添加。</div>
         <div class="tr" v-for="d in docs" :key="d.id">
           <div>{{ d.id }}</div>
           <div class="kb">{{ d.knowledge_base_name || '—' }}</div>
@@ -370,6 +374,15 @@ onMounted(async () => {
   padding: 12px;
   display: grid;
   gap: 8px;
+}
+.empty-hint {
+  padding: 24px 16px;
+  text-align: center;
+  font-size: 14px;
+  color: var(--text);
+  border: 1px dashed var(--border);
+  border-radius: 14px;
+  background: color-mix(in oklab, var(--bg) 88%, transparent);
 }
 .tr {
   display: grid;

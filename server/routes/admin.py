@@ -141,6 +141,21 @@ def list_users():
     return {"ok": True, "data": AdminService.list_users()}
 
 
+@admin_bp.post("/users")
+def create_user():
+    """
+    新建用户（管理员）：JSON username、password、role（可选，默认 user）。
+    """
+
+    actor = AuthService.require_admin()
+    body = request.get_json(silent=True) or {}
+    username = body.get("username")
+    password = body.get("password")
+    role = body.get("role") or "user"
+    data = AdminService.create_user(username=username, password=password, role=role, actor_id=actor["id"])
+    return {"ok": True, "data": data}
+
+
 @admin_bp.patch("/users/<int:user_id>")
 def patch_user(user_id: int):
     """

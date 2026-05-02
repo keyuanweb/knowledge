@@ -42,6 +42,7 @@ function openCreate() {
 }
 
 function closeCreate() {
+  if (creating.value) return
   showCreate.value = false
 }
 
@@ -58,6 +59,7 @@ async function submitCreate() {
       name,
       description: createForm.description.trim(),
     })
+    creating.value = false
     closeCreate()
     await load()
   } catch (e) {
@@ -96,7 +98,9 @@ async function confirmDeleteKb() {
   delKbLoading.value = true
   try {
     await api.delete(`/admin/knowledge-bases/${deleteTarget.value.id}`)
-    closeKbConfirm()
+    delKbLoading.value = false
+    showKbConfirm.value = false
+    deleteTarget.value = null
     await load()
   } catch (e) {
     kbDeleteErr.value = e?.message || '删除失败'
@@ -169,7 +173,7 @@ onMounted(load)
         <div class="modal" role="dialog" aria-modal="true" aria-labelledby="kb-create-title">
           <div class="modal-h">
             <h2 id="kb-create-title" class="modal-title">新建知识库</h2>
-            <button type="button" class="icon-close" aria-label="关闭" @click="closeCreate">×</button>
+            <button type="button" class="icon-close" aria-label="关闭" :disabled="creating" @click="closeCreate">×</button>
           </div>
           <div class="modal-b">
             <label class="fld">
@@ -183,7 +187,7 @@ onMounted(load)
             <p v-if="createErr" class="cerr">{{ createErr }}</p>
           </div>
           <div class="modal-f">
-            <button type="button" class="btn" @click="closeCreate">取消</button>
+            <button type="button" class="btn" :disabled="creating" @click="closeCreate">取消</button>
             <button type="button" class="primary" :disabled="creating" @click="submitCreate">
               {{ creating ? '提交中…' : '创建' }}
             </button>
